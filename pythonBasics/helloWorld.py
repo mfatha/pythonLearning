@@ -49,3 +49,31 @@ elif x > 5 :
     print("X is great than five")
 else:
     print("Y is great")
+
+
+#function
+def funExample(num1, num2):
+    print('basic Function')
+    ans = num1+num2
+    print(ans)
+
+funExample(1,2)
+
+#function with Default parameter
+def defFunction(n2,num):
+    pass
+
+def defFunction(n2,num=1):
+    #defualt paramenter shouldn't be as first parameter
+    print(num,n2)
+
+defFunction(3)
+
+#global and local variables
+def gobalDeclaration():
+    global x
+    #only declarion , do not init a value to the global variable
+    x=10
+
+gobalDeclaration()
+print(x)

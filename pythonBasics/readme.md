@@ -1,5 +1,7 @@
 ================ PYTHON BASICS ==================
 
+Python Version Used : 3.6.3 [16/12/2017]
+
 Hi,
 
 In this repository, we will see about Python basics.
