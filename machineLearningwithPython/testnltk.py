@@ -301,6 +301,33 @@ all_words = nltk.FreqDist(all_words)
 #print(all_words.most_common(15))
 #print(all_words["stupid"])
 
+"""Combining Algorithms with Vote -> GOTO (2)"""
+
+from nltk.classify import ClassifierI
+from statistics import mode
+
+
+class VoteClassifier(ClassifierI):
+    def __init__(self, *classifiers):
+        self._classifiers = classifiers
+
+    def classify(self, features):
+        votes = []
+        for c in self._classifiers:
+            v = c.classify(features)
+            votes.append(v)
+        return mode(votes)
+
+    def confidence(self, features):
+        votes = []
+        for c in self._classifiers:
+            v = c.classify(features)
+            votes.append(v)
+
+        choice_votes = votes.count(mode(votes))
+        conf = choice_votes/ len(votes)
+        return conf
+
 """Word features"""
 
 word_features = list(all_words.keys())[:3000]
@@ -313,6 +340,109 @@ def findFeatures(docs):
 
     return features
 
-print(findFeatures(movie_reviews.words('neg/cv000_29416.txt')))
+#print(findFeatures(movie_reviews.words('neg/cv000_29416.txt')))
 
 featuresets = [(findFeatures(rev),category) for (rev,category) in doc]
+
+"""Naive Bayes Algorithm"""
+"""Non grammer feature... just based on words.. count"""
+
+traning_set  = featuresets[:1900]
+testing_set  = featuresets[1900:]
+
+##classifier = nltk.NaiveBayesClassifier.train(traning_set)
+##print("NAive bayes ALgo: ", (nltk.classify.accuracy(classifier, testing_set))*100)
+##
+##classifier.show_most_informative_features(15)
+
+"""Save classifier using Pickle"""
+"""Used to save all the training objects"""
+import pickle
+
+#save the Object
+##save_classifier = open("naivebayes.pickle","wb")
+##pickle.dump(classifier,save_classifier)
+##save_classifier.close()
+ 
+
+#load traing data Object
+read_classifier = open("naivebayes.pickle","rb")
+classifier = pickle.load(read_classifier)
+read_classifier.close()
+print("NAive bayes ALgo: ", (nltk.classify.accuracy(classifier, testing_set))*100)
+
+classifier.show_most_informative_features(15)
+
+
+"""Scikit learn incorporation"""
+from nltk.classify.scikitlearn import SklearnClassifier
+from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB
+from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.svm import SVC, LinearSVC , NuSVC
+
+#MultinomialNB
+MNB_classifier = SklearnClassifier(MultinomialNB())
+MNB_classifier.train(traning_set)
+print("MNB_classifier acuracy percent: " , (nltk.classify.accuracy(MNB_classifier, testing_set))*100)
+
+
+#GaussianNB
+"""Does work with SKLearn classifier """
+##GNB_classifier = SklearnClassifier(GaussianNB())
+##GNB_classifier.train(traning_set)
+##print("GNB_classifier acuracy percent: " , (nltk.classify.accuracy(GNB_classifier, testing_set))*100)
+
+#BrnoulliNB
+BNB_classifier = SklearnClassifier(BernoulliNB())
+BNB_classifier.train(traning_set)
+print("BNB_classifier acuracy percent: " , (nltk.classify.accuracy(BNB_classifier, testing_set))*100)
+
+#LogisticRegression
+Logis_classifier = SklearnClassifier(LogisticRegression())
+Logis_classifier.train(traning_set)
+print("Logis_classifier acuracy percent: " , (nltk.classify.accuracy(Logis_classifier, testing_set))*100)
+
+#SGDClassifier
+SGD_classifier = SklearnClassifier(SGDClassifier())
+SGD_classifier.train(traning_set)
+print("SGD_classifier acuracy percent: " , (nltk.classify.accuracy(SGD_classifier, testing_set))*100)
+
+#SVC
+##SVC_classifier = SklearnClassifier(SVC())
+##SVC_classifier.train(traning_set)
+##print("SVC_classifier acuracy percent: " , (nltk.classify.accuracy(SVC_classifier, testing_set))*100)
+
+#LinearSVC
+LinearSVC_classifier = SklearnClassifier(LinearSVC())
+LinearSVC_classifier.train(traning_set)
+print("LinearSVC_classifier acuracy percent: " , (nltk.classify.accuracy(LinearSVC_classifier, testing_set))*100)
+
+#NuSVC
+NuSVC_classifier = SklearnClassifier(NuSVC())
+NuSVC_classifier.train(traning_set)
+print("NuSVC_classifier acuracy percent: " , (nltk.classify.accuracy(NuSVC_classifier, testing_set))*100)
+
+
+"""
+::::: Accuracy Score ::::::
+MNB_classifier acuracy percent:  87.0
+BNB_classifier acuracy percent:  85.0
+Logis_classifier acuracy percent:  88.0
+SGD_classifier acuracy percent:  85.0
+SVC_classifier acuracy percent:  82.0
+LinearSVC_classifier acuracy percent:  83.0
+NuSVC_classifier acuracy percent:  86.0
+"""
+
+
+"""(2) Combining Algorithms with Vote"""
+
+voted_classifer = VoteClassifier(classifier,LinearSVC_classifier,MNB_classifier,BNB_classifier,SGD_classifier,LinearSVC_classifier,NuSVC_classifier)
+print("voted_classifer accuracy percent: " , (nltk.classify.accuracy(voted_classifer, testing_set))*100)
+print("Classfication:", voted_classifer.classify(testing_set[0][0]), "Confidence : %", (voted_classifer.confidence(testing_set[0][0]))*100)
+print("Classfication:", voted_classifer.classify(testing_set[1][0]), "Confidence : %", (voted_classifer.confidence(testing_set[1][0]))*100)
+print("Classfication:", voted_classifer.classify(testing_set[2][0]), "Confidence : %", (voted_classifer.confidence(testing_set[2][0]))*100)
+print("Classfication:", voted_classifer.classify(testing_set[3][0]), "Confidence : %", (voted_classifer.confidence(testing_set[3][0]))*100)
+print("Classfication:", voted_classifer.classify(testing_set[4][0]), "Confidence : %", (voted_classifer.confidence(testing_set[4][0]))*100)
+print("Classfication:", voted_classifer.classify(testing_set[5][0]), "Confidence : %", (voted_classifer.confidence(testing_set[5][0]))*100)
+
